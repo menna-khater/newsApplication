@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:news/data/api.dart';
+import 'package:news/data/models/news_model.dart';
 import 'package:news/widgets/image_item_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,11 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
     "totalResults": 9966,
     "articles": [],
   };
-  @override
-  void initState() {
-    super.initState();
-    getNews();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,22 +29,43 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('News App', style: Theme.of(context).textTheme.bodyLarge),
         centerTitle: true,
       ),
-      body: ListView.builder(
-        itemBuilder: (context, index) {
-          return ImageItemWidget(
-            image: data['articles'][index]['urlToImage'],
-            title: data['articles'][index]["title"],
-            onTap: () {},
-          );
+      body: FutureBuilder<NewsModel>(
+        future: Api.getNews(),
+        builder: (context, snapshot) {
+          log('future builder');
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            log('future builder Error');
+
+            return Center(
+              child: Text(
+                'Error From call get news try again',
+                style: TextStyle(color: Colors.red, fontSize: 20),
+                textAlign: TextAlign.center,
+              ), // Text
+            ); // Center
+          }
+          if (snapshot.hasData) {
+            log('future builder has data');
+            List<Article> articles = snapshot.data?.articles ?? [];
+            return ListView.builder(
+              itemBuilder: (context, index) {
+                return ImageItemWidget(
+                  image: articles[index].urlToImage,
+                  title: articles[index].title,
+                  onTap: () {},
+                ); // ImageItemWidget
+              },
+              itemCount: data.length,
+            ); // ListView.builder
+          } else {
+            return Container(width: 100, height: 100, color: Colors.red);
+          }
         },
-        itemCount: (data['articles'] as List<dynamic>).length,
       ),
     );
-  }
-
-  void getNews() async {
-    data = await Api.getNews();
-    setState(() {});
   }
 }
 
