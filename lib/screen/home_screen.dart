@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {},
                 ); // ImageItemWidget
               },
-              itemCount: data.length,
+              itemCount: articles.length,
             ); // ListView.builder
           } else {
             return Container(width: 100, height: 100, color: Colors.red);
